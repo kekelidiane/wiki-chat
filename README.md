@@ -38,13 +38,30 @@ Documentation Swagger : `http://localhost:8081/api/v1/wiki-chat/documentation`
 1. `GET /api/v1/wiki-chat/health` — état du service et de la base.
 2. `POST /api/v1/wiki-chat/chat` — pose une question, renvoie réponse +
    sources. Authentifié (token Keycloak).
-3. `POST /api/v1/wiki-chat/ingest` — réindexe les articles publiés.
-   Réservé aux rôles `manager` et `director`.
+3. `POST /api/v1/wiki-chat/ingest` — réindexe tout depuis zéro. Réservé
+   aux rôles `manager` et `director`.
+
+## Synchronisation
+
+Un planificateur en tâche de fond réindexe automatiquement de façon
+incrémentale (`WIKI_SYNC_INTERVAL_SECONDS`, 300 s par défaut) : seuls les
+articles dont la `version` a changé sont réencodés, et ceux qui ne sont
+plus publiés sont retirés de l'index. Coupe-le avec
+`WIKI_SYNC_ENABLED=false`.
+
+## Tests
+
+```bash
+pytest                          # tests unitaires
+pytest -m integration           # intégration (Postgres pgvector + Ollama réels)
+```
+
+Les tests d'intégration sont ignorés tant que `WIKI_IT_DB` (base pgvector
+de test) ou Ollama ne sont pas disponibles.
 
 ## Qualité
 
 ```bash
 ruff check src tests
 black --check src tests
-pytest
 ```

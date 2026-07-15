@@ -4,6 +4,7 @@ from app.services.health.health_check_service import HealthCheckService
 from app.services.ingestion.ingestion_service import IngestionService
 from app.services.llm.ollama_client import OllamaClient
 from app.services.rag.rag_service import RagService
+from app.services.scheduler.sync_scheduler import SyncScheduler
 from app.storage.rds.clients.database_manager import DATA_BASE_MANAGER
 from app.storage.vector.vector_store import VectorStore
 
@@ -49,11 +50,15 @@ class ServicesFactory:
 _EMBEDDINGS = EmbeddingsService(ENVIRONMENT_CONFIG)
 _VECTOR_STORE = VectorStore(DATA_BASE_MANAGER, ENVIRONMENT_CONFIG)
 _OLLAMA = OllamaClient(ENVIRONMENT_CONFIG)
+_INGESTION = IngestionService(
+    DATA_BASE_MANAGER, _EMBEDDINGS, _VECTOR_STORE, ENVIRONMENT_CONFIG
+)
 
 CHAT_SERVICES = ChatServices(
     HealthCheckService(DATA_BASE_MANAGER),
     RagService(_EMBEDDINGS, _VECTOR_STORE, _OLLAMA, ENVIRONMENT_CONFIG),
-    IngestionService(DATA_BASE_MANAGER, _EMBEDDINGS, _VECTOR_STORE, ENVIRONMENT_CONFIG),
+    _INGESTION,
     _EMBEDDINGS,
 )
 CHAT_FACTORY = ServicesFactory(CHAT_SERVICES)
+SYNC_SCHEDULER = SyncScheduler(_INGESTION, ENVIRONMENT_CONFIG)

@@ -12,6 +12,7 @@ def to_vector_literal(embedding: list[float]) -> str:
 
 class VectorStore:
     TABLE = "wiki_chunks"
+    STATE_TABLE = "wiki_index_state"
 
     def __init__(self, database_manager: DataBaseManager, config: dict):
         self._db = database_manager
@@ -34,14 +35,37 @@ class VectorStore:
             f"CREATE INDEX IF NOT EXISTS ix_{self.TABLE}_article_id "
             f"ON {self.TABLE} (article_id)"
         )
+        await self._db.execute(f"""
+            CREATE TABLE IF NOT EXISTS {self.STATE_TABLE} (
+                article_id TEXT PRIMARY KEY,
+                version INT NOT NULL,
+                indexed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """)
 
     async def clear(self) -> None:
         await self._db.execute(f"TRUNCATE {self.TABLE}")
+        await self._db.execute(f"TRUNCATE {self.STATE_TABLE}")
+
+    async def indexed_versions(self) -> dict[str, int]:
+        rows = await self._db.fetch(
+            f"SELECT article_id, version FROM {self.STATE_TABLE}"
+        )
+        return {r["article_id"]: r["version"] for r in rows}
+
+    async def delete_article(self, article_id: str) -> None:
+        await self._db.execute(
+            f"DELETE FROM {self.TABLE} WHERE article_id = $1", article_id
+        )
+        await self._db.execute(
+            f"DELETE FROM {self.STATE_TABLE} WHERE article_id = $1", article_id
+        )
 
     async def add_chunks(
         self,
         article_id: str,
         title: str,
+        version: int,
         chunks: list[str],
         embeddings: list[list[float]],
     ) -> int:
@@ -56,6 +80,16 @@ class VectorStore:
             VALUES ($1, $2, $3, $4, $5::vector)
             """,
             rows,
+        )
+        await self._db.execute(
+            f"""
+            INSERT INTO {self.STATE_TABLE} (article_id, version, indexed_at)
+            VALUES ($1, $2, now())
+            ON CONFLICT (article_id)
+            DO UPDATE SET version = EXCLUDED.version, indexed_at = now()
+            """,
+            article_id,
+            int(version),
         )
         return len(rows)
 

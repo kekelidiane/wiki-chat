@@ -51,3 +51,6 @@ addopts = "-ra -q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 pythonpath = ["src"]
+markers = [
+    "integration: tests that need a real Postgres/pgvector or Ollama",
+]

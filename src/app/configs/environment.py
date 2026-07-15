@@ -22,6 +22,8 @@ class EnvKey(Enum):
     WIKI_JWT_AUTHORITY_DOMAIN = auto()
     WIKI_KC_REALM = auto()
     WIKI_JWT_AUDIENCE = auto()
+    WIKI_SYNC_ENABLED = auto()
+    WIKI_SYNC_INTERVAL_SECONDS = auto()
 
 
 # Non-sensitive defaults. Secrets have no default and come from the environment.
@@ -43,6 +45,8 @@ _DEFAULTS: dict[str, str] = {
     "WIKI_JWT_AUTHORITY_DOMAIN": "https://auth.wearedigijob.com",
     "WIKI_KC_REALM": "digijob",
     "WIKI_JWT_AUDIENCE": "account",
+    "WIKI_SYNC_ENABLED": "true",
+    "WIKI_SYNC_INTERVAL_SECONDS": "300",
 }
 
 # Variables that must be supplied by the environment (no safe default).
