@@ -18,7 +18,8 @@ class JwtValidator:
         domain = config[EnvKey.WIKI_JWT_AUTHORITY_DOMAIN].rstrip("/")
         realm = config[EnvKey.WIKI_KC_REALM]
         self._issuer = f"{domain}/realms/{realm}"
-        self._audience = config[EnvKey.WIKI_JWT_AUDIENCE]
+        self._client_id = config[EnvKey.WIKI_KC_CLIENT_ID]
+        self._audience = self._client_id
         self._jwks_client = jwt.PyJWKClient(
             f"{self._issuer}/protocol/openid-connect/certs"
         )
@@ -32,7 +33,9 @@ class JwtValidator:
             audience=self._audience,
             issuer=self._issuer,
         )
-        roles = claims.get("realm_access", {}).get("roles", [])
+        roles = (
+            claims.get("resource_access", {}).get(self._client_id, {}).get("roles", [])
+        )
         return AuthenticatedUser(
             user_id=claims.get("sub", ""),
             username=claims.get("preferred_username", ""),

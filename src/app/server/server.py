@@ -1,11 +1,16 @@
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.configs.environment import ENVIRONMENT_CONFIG, EnvKey
 from app.configs.logger_config import LOGGING_CONFIG, RequestIdMiddleware
 from app.configs.router_config import api_router
 from app.hooks.startup_shutdown_events import lifespan
+
+
+def _split(value: str) -> list[str]:
+    return [item.strip() for item in str(value).split(",") if item.strip()]
 
 
 class WikiChatServer:
@@ -23,8 +28,13 @@ class WikiChatServer:
         fast_api.include_router(api_router, prefix=prefix)
         fast_api.add_middleware(RequestIdMiddleware)
         fast_api.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=_split(ENVIRONMENT_CONFIG[EnvKey.WIKI_ALLOWED_HOSTS]),
+        )
+        fast_api.add_middleware(
             CORSMiddleware,
-            allow_origins=["*"],
+            allow_origins=_split(ENVIRONMENT_CONFIG[EnvKey.WIKI_ALLOWED_ORIGINS]),
+            allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
         )

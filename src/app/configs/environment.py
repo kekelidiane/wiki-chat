@@ -21,7 +21,9 @@ class EnvKey(Enum):
     WIKI_CHUNK_OVERLAP = auto()
     WIKI_JWT_AUTHORITY_DOMAIN = auto()
     WIKI_KC_REALM = auto()
-    WIKI_JWT_AUDIENCE = auto()
+    WIKI_KC_CLIENT_ID = auto()
+    WIKI_ALLOWED_ORIGINS = auto()
+    WIKI_ALLOWED_HOSTS = auto()
     WIKI_SYNC_ENABLED = auto()
     WIKI_SYNC_INTERVAL_SECONDS = auto()
 
@@ -44,7 +46,9 @@ _DEFAULTS: dict[str, str] = {
     "WIKI_CHUNK_OVERLAP": "120",
     "WIKI_JWT_AUTHORITY_DOMAIN": "https://auth.wearedigijob.com",
     "WIKI_KC_REALM": "digijob",
-    "WIKI_JWT_AUDIENCE": "account",
+    "WIKI_KC_CLIENT_ID": "wiki",
+    "WIKI_ALLOWED_ORIGINS": "http://localhost:3000",
+    "WIKI_ALLOWED_HOSTS": "localhost,127.0.0.1",
     "WIKI_SYNC_ENABLED": "true",
     "WIKI_SYNC_INTERVAL_SECONDS": "300",
 }
