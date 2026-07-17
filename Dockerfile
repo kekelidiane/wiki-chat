@@ -16,6 +16,10 @@ COPY pyproject.toml /app/
 COPY run.py /app/
 COPY src /app/src
 
+# The cluster runs on CPU: pull the CPU-only torch wheel first, otherwise
+# sentence-transformers drags the CUDA build in and the image blows past 15GB.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir .
 
 RUN useradd --create-home --no-log-init --user-group wiki && \
